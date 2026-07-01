@@ -1,4 +1,4 @@
-package com.devopswithprashant.auth.entity
+package com.devopswithprashant.service.auth.entity
 
 /**
  * Defines all application roles.
