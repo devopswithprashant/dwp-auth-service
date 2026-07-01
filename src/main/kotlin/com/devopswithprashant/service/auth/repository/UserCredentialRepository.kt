@@ -1,7 +1,9 @@
 package com.devopswithprashant.service.auth.repository
 
-import com.devopswithprashant.auth.entity.UserCredential
+import com.devopswithprashant.service.auth.entity.UserCredential
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import java.util.UUID
 
 interface UserCredentialRepository : JpaRepository<UserCredential, UUID> {
@@ -14,8 +16,16 @@ interface UserCredentialRepository : JpaRepository<UserCredential, UUID> {
 
     fun findByEmail(email: String): UserCredential?
 
-    fun findByUsernameOrEmail(
-        username: String,
-        email: String
+    @Query(
+        """
+        SELECT uc
+        FROM UserCredential uc
+        WHERE uc.username = :identifier
+           OR uc.email = :identifier
+        """
+    )
+    fun findByIdentifier(
+        @Param("identifier")
+        identifier: String
     ): UserCredential?
 }
