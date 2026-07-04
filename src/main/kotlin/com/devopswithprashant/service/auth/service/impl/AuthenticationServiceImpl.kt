@@ -2,7 +2,7 @@ package com.devopswithprashant.service.auth.service.impl
 
 import com.devopswithprashant.service.auth.common.exception.BusinessException
 import com.devopswithprashant.service.auth.entity.RoleType
-import com.devopswithprashant.service.auth.exception.AuthErrorCode
+import com.devopswithprashant.service.auth.common.exception.AuthErrorCode
 import com.devopswithprashant.service.auth.model.AuthenticatedUser
 import com.devopswithprashant.service.auth.repository.UserCredentialRepository
 import com.devopswithprashant.service.auth.service.AuthenticationService
@@ -62,9 +62,7 @@ class AuthenticationServiceImpl(
             id = user.id,
             username = user.username,
             email = user.email,
-            roles = user.getRoles()
-                .map(RoleType::name)
-                .toSet()
+            roles = user.getRoleTypes()
         )
     }
 }

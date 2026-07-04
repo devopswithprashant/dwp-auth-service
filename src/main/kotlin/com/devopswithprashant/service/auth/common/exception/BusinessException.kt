@@ -1,6 +1,6 @@
 package com.devopswithprashant.service.auth.common.exception
 
-import com.devopswithprashant.service.auth.exception.AuthErrorCode
+import com.devopswithprashant.service.auth.common.exception.AuthErrorCode
 
 class BusinessException(
 

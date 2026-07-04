@@ -3,7 +3,7 @@ package com.devopswithprashant.service.auth.service.impl
 import com.devopswithprashant.service.auth.dto.request.RegisterRequest
 import com.devopswithprashant.service.auth.dto.response.RegisterResponse
 import com.devopswithprashant.service.auth.entity.RoleType
-import com.devopswithprashant.service.auth.exception.AuthErrorCode
+import com.devopswithprashant.service.auth.common.exception.AuthErrorCode
 import com.devopswithprashant.service.auth.common.exception.BusinessException
 import com.devopswithprashant.service.auth.mapper.UserCredentialMapper
 import com.devopswithprashant.service.auth.repository.RoleRepository

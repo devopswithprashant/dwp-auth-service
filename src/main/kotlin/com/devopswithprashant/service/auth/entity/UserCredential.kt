@@ -70,6 +70,8 @@ class UserCredential(
 
     fun getRoles(): Set<Role> = roles.toSet()
 
+    fun getRoleTypes(): Set<RoleType> = roles.map { it.name }.toSet()
+
     fun assignRole(role: Role) {
         roles.add(role)
     }

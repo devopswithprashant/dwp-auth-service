@@ -4,9 +4,9 @@ data class TokenResponse(
 
     val accessToken: String,
 
-    val refreshToken: String?,
+    val refreshToken: String? = null,
 
-    val tokenType: String,
+    val tokenType: String = "Bearer",
 
     val expiresInSeconds: Long
 )
