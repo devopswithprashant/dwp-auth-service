@@ -36,14 +36,20 @@ enum class AuthErrorCode(
         HttpStatus.FORBIDDEN
     ),
 
-    EMAIL_NOT_VERIFIED(
+    ACCOUNT_DISABLED(
         "AUTH-005",
+        "Account is disabled.",
+        HttpStatus.FORBIDDEN
+    ),
+
+    EMAIL_NOT_VERIFIED(
+        "AUTH-006",
         "Email address is not verified.",
         HttpStatus.FORBIDDEN
     ),
 
     ROLE_NOT_FOUND(
-        "AUTH-006",
+        "AUTH-007",
         "Default role is not configured.",
         HttpStatus.INTERNAL_SERVER_ERROR
     ),
