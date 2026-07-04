@@ -9,5 +9,7 @@ data class JwtProperties(
 
     var issuer: String = "",
 
+    var audience: String = "",
+
     var accessTokenValidity: Long = 3600
 )

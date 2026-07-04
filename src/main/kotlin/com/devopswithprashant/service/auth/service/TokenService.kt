@@ -1,13 +1,11 @@
 package com.devopswithprashant.service.auth.service
 
-import com.devopswithprashant.service.auth.model.AuthenticatedUser
 import com.devopswithprashant.service.auth.dto.response.TokenResponse
+import com.devopswithprashant.service.auth.model.AuthenticatedUser
 
 interface TokenService {
 
-    fun generateToken(
-
+    fun generateAccessToken(
         authenticatedUser: AuthenticatedUser
-
     ): TokenResponse
 }

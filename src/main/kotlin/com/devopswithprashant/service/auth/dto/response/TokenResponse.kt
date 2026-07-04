@@ -1,3 +1,5 @@
+package com.devopswithprashant.service.auth.dto.response
+
 data class TokenResponse(
 
     val accessToken: String,
@@ -6,5 +8,5 @@ data class TokenResponse(
 
     val tokenType: String,
 
-    val expiresIn: Long
+    val expiresInSeconds: Long
 )
