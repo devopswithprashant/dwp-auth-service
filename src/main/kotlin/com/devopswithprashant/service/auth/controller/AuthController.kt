@@ -8,6 +8,10 @@ import com.devopswithprashant.service.auth.dto.response.RegisterResponse
 import com.devopswithprashant.service.auth.service.AuthenticationService
 import com.devopswithprashant.service.auth.service.RegistrationService
 import com.devopswithprashant.service.auth.service.TokenService
+import com.devopswithprashant.service.auth.dto.response.CurrentUserResponse
+import com.devopswithprashant.service.auth.mapper.CurrentUserMapper
+import com.devopswithprashant.service.auth.security.user.AuthenticatedUserDetails
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,10 +22,9 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
 
     private val registrationService: RegistrationService,
-
     private val authenticationService: AuthenticationService,
-
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val currentUserMapper: CurrentUserMapper
 
 ) {
 
@@ -68,6 +71,30 @@ class AuthController(
             ApiSuccessResponse(
                 data = response
             )
+        )
+    }
+
+
+    @GetMapping("/me")
+    fun currentUser(
+
+        @AuthenticationPrincipal
+        principal: AuthenticatedUserDetails
+
+    ): ResponseEntity<ApiSuccessResponse<CurrentUserResponse>> {
+
+        return ResponseEntity.ok(
+
+            ApiSuccessResponse(
+
+                data = currentUserMapper.toResponse(
+
+                    principal
+
+                )
+
+            )
+
         )
     }
 }

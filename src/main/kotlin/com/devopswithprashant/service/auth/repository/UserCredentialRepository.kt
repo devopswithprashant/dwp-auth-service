@@ -18,14 +18,28 @@ interface UserCredentialRepository : JpaRepository<UserCredential, UUID> {
 
     @Query(
         """
-        SELECT uc
+        SELECT DISTINCT uc
         FROM UserCredential uc
+        LEFT JOIN FETCH uc.roles
         WHERE uc.username = :identifier
            OR uc.email = :identifier
         """
     )
-    fun findByIdentifier(
+    fun findByIdentifierWithRoles(
         @Param("identifier")
         identifier: String
+    ): UserCredential?
+
+    @Query(
+        """
+        SELECT DISTINCT uc
+        FROM UserCredential uc
+        LEFT JOIN FETCH uc.roles
+        WHERE uc.id = :id
+        """
+    )
+    fun findByIdWithRoles(
+        @Param("id")
+        id: UUID
     ): UserCredential?
 }
