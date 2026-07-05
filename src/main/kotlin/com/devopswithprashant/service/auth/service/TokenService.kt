@@ -8,4 +8,13 @@ interface TokenService {
     fun generateAccessToken(
         authenticatedUser: AuthenticatedUser
     ): TokenResponse
+
+    fun validateToken(
+        token: String
+    ): Boolean
+
+    fun extractSubject(
+        token: String
+    ): String
+    
 }

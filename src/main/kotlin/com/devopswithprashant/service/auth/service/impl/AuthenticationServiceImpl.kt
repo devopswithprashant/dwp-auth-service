@@ -29,7 +29,7 @@ class AuthenticationServiceImpl(
     ): AuthenticatedUser {
 
         val user =
-            userCredentialRepository.findByIdentifier(identifier)
+    userCredentialRepository.findByIdentifierWithRoles(identifier)
                 ?: throw BusinessException(
                     AuthErrorCode.INVALID_CREDENTIALS
                 )
@@ -46,11 +46,23 @@ class AuthenticationServiceImpl(
             )
         }
 
-        if (!user.emailVerified) {
-            throw BusinessException(
-                AuthErrorCode.EMAIL_NOT_VERIFIED
-            )
-        }
+        /*
+        * TODO:
+        * Re-enable this check once the Email Verification
+        * feature is implemented.
+        *
+        * For the initial beta release (v0.X), users are allowed
+        * to log in even if their email address has not yet
+        * been verified.
+        */
+
+        // if (!user.emailVerified) {
+        //
+        //     throw BusinessException(
+        //         AuthErrorCode.EMAIL_NOT_VERIFIED
+        //     )
+        //
+        // }
 
         if (!passwordEncoder.matches(password, user.passwordHash)) {
             throw BusinessException(
