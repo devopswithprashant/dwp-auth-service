@@ -1,0 +1,24 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register a new user
+  /api/v1/auth/login:
+    post:
+      summary: Login
+  /api/v1/auth/me:
+    get:
+      summary: Current authenticated user
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
