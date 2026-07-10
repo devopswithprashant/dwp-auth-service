@@ -1,0 +1,23 @@
+spring:
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${TEST_DB_HOST:localhost}:${TEST_DB_PORT:5432}/${TEST_DB_NAME:authdb_test}
+    username: ${TEST_DB_USERNAME:authuserdb_test}
+    password: ${TEST_DB_PASSWORD:authuserdb_test}
+
+  jpa:
+    show-sql: false
+
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    root: WARN
+
+jwt:
+  issuer: test-auth
+  audience: test-platform
+  secret: test-secret-key-which-is-long-enough-for-hs384-algorithm
+  access-token-validity: 300

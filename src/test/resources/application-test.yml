@@ -1,0 +1,3 @@
+# Intentionally left empty so the shared test configuration in
+# src/test/resources/application.yml is used for both unit and integration tests.
+# This keeps the test environment aligned with the dedicated PostgreSQL test database.
