@@ -7,10 +7,11 @@ spring:
     password: ${DB_PASSWORD:authuserdb}
 
   jpa:
-    show-sql: true
+    show-sql: false
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO
+    com.devopswithprashant.service.auth: INFO
 

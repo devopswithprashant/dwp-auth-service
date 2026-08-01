@@ -6,6 +6,7 @@ import com.devopswithprashant.service.auth.common.exception.AuthErrorCode
 import com.devopswithprashant.service.auth.model.AuthenticatedUser
 import com.devopswithprashant.service.auth.repository.UserCredentialRepository
 import com.devopswithprashant.service.auth.service.AuthenticationService
+import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,6 +21,8 @@ class AuthenticationServiceImpl(
 
 ) : AuthenticationService {
 
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     override fun authenticate(
 
         identifier: String,
@@ -28,19 +31,26 @@ class AuthenticationServiceImpl(
 
     ): AuthenticatedUser {
 
+        logger.info("Authentication attempt for identifier={}", identifier)
+
         val user =
-    userCredentialRepository.findByIdentifierWithRoles(identifier)
-                ?: throw BusinessException(
-                    AuthErrorCode.INVALID_CREDENTIALS
-                )
+            userCredentialRepository.findByIdentifierWithRoles(identifier)
+                ?: run {
+                    logger.warn("Authentication failed: no matching user found for identifier={}", identifier)
+                    throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
+                }
+
+        logger.debug("User record found for identifier={}, userId={}, enabled={}, accountNonLocked={}", identifier, user.id, user.enabled, user.accountNonLocked)
 
         if (!user.enabled) {
+            logger.warn("Authentication failed: account disabled for userId={}", user.id)
             throw BusinessException(
                 AuthErrorCode.ACCOUNT_DISABLED
             )
         }
 
         if (!user.accountNonLocked) {
+            logger.warn("Authentication failed: account locked for userId={}", user.id)
             throw BusinessException(
                 AuthErrorCode.ACCOUNT_LOCKED
             )
@@ -65,10 +75,13 @@ class AuthenticationServiceImpl(
         // }
 
         if (!passwordEncoder.matches(password, user.passwordHash)) {
+            logger.warn("Authentication failed: invalid password for userId={}", user.id)
             throw BusinessException(
                 AuthErrorCode.INVALID_CREDENTIALS
             )
         }
+
+        logger.info("Authentication succeeded for userId={}, username={}", user.id, user.username)
 
         return AuthenticatedUser(
             id = user.id,
