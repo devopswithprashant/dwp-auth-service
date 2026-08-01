@@ -1,7 +1,7 @@
 # Auth Service Architecture
 
 ```
-React UI
+App UI
     |
 API Gateway (future)
     |
