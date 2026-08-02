@@ -1,0 +1,126 @@
+name: "Release Create"
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit to release (HEAD or specific commit SHA)'
+        required: true
+        default: 'HEAD'
+        type: string
+      next_version:
+        description: 'Next development version (e.g., 1.2.0-SNAPSHOT). Leave empty to auto-increment patch.'
+        required: false
+        default: ''
+        type: string
+
+
+permissions:
+  contents: write
+
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    # Enforce that this workflow can only run on the main branch
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit }}
+          fetch-depth: 0 # Fetch all history to compare commit positions
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+
+      - name: Fetch Current Version from Gradle
+        id: gradle_version
+        run: |
+          # Extract version string from build.gradle.kts
+          CURRENT_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          echo "Extracted project version: $CURRENT_VERSION"
+          
+          # Validation: Check if version ends with -SNAPSHOT
+          if [[ ! "$CURRENT_VERSION" =~ -SNAPSHOT$ ]]; then
+            echo "ERROR: Current version '$CURRENT_VERSION' is not a -SNAPSHOT version. Exiting."
+            exit 1
+          fi
+          
+          # Trim -SNAPSHOT to get the release version
+          RELEASE_VERSION="${CURRENT_VERSION%-SNAPSHOT}"
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
+
+      - name: Validate Tag Existence
+        run: |
+          TAG_NAME="v${{ env.RELEASE_VERSION }}"
+          
+          # Fetch all remote tags to make sure local check is complete
+          git fetch --tags
+          
+          # Validation 2: Check if tag already exists in git history
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "ERROR: The Git Tag '$TAG_NAME' already exists in the repository. Aborting release to prevent overwrite."
+            exit 1
+          else
+            echo "Validation passed: Tag '$TAG_NAME' does not exist yet."
+          fi
+
+
+      - name: Create and Push Git Tag
+        run: |
+          TAG_NAME="v${{ env.RELEASE_VERSION }}"
+          echo "Creating Git Tag: $TAG_NAME"
+          
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"
+
+      - name: Handle Main Branch Version Update
+        run: |
+          INPUT_COMMIT="${{ github.event.inputs.commit }}"
+          INPUT_NEXT_VERSION="${{ github.event.inputs.next_version }}"
+          
+          # Case 1: If commit is NOT HEAD, check if it's behind main HEAD
+          if [ "$INPUT_COMMIT" != "HEAD" ]; then
+            # Get the actual SHA of the checked out commit and main HEAD
+            TARGET_SHA=$(git rev-parse HEAD)
+            MAIN_HEAD_SHA=$(git rev-parse origin/main)
+            
+            if [ "$TARGET_SHA" != "$MAIN_HEAD_SHA" ]; then
+              echo "Specific commit is behind main HEAD. Skipping main branch version update as requested."
+              exit 0
+            fi
+          fi
+          
+          # Case 2: Commit is HEAD (or resolves identically to HEAD). Proceed with updating main.
+          echo "Commit is at HEAD. Updating project version on main branch..."
+          
+          # Checkout the actual main branch explicitly to apply modifications
+          git checkout main
+          
+          # Determine the next development version string
+          if [ -n "$INPUT_NEXT_VERSION" ]; then
+            NEW_DEV_VERSION="$INPUT_NEXT_VERSION"
+          else
+            # Auto-calculate next patch version from the clean release version
+            # Splits 1.2.3 into array components
+            IFS='.' read -r major minor patch <<< "${{ env.RELEASE_VERSION }}"
+            NEXT_PATCH=$((patch + 1))
+            NEW_DEV_VERSION="${major}.${minor}.${NEXT_PATCH}-SNAPSHOT"
+          fi
+          
+          echo "Targeting next development version: $NEW_DEV_VERSION"
+          
+          # Safely update the version property inside build.gradle.kts
+          # Handles double quotes, single quotes, and basic assignment formats
+          sed -i "s/version = .*/version = \"$NEW_DEV_VERSION\"/g" build.gradle.kts
+          sed -i "s/version.set(.*/version.set(\"$NEW_DEV_VERSION\")/g" build.gradle.kts
+          
+          # Commit and push changes back upstream to main
+          git add build.gradle.kts
+          git commit -m "chore: bump development version to $NEW_DEV_VERSION [skip ci]"
+          git push origin main
