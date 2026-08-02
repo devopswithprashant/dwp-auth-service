@@ -87,9 +87,6 @@ jobs:
       - name: Gradle Build
         run: |
           ./gradlew clean build -x test
-          ls -lrt
-          pwd
-          ls -lrt build/libs
       
       - name: Upload build artifact (build/libs/)
         uses: actions/upload-artifact@v6
