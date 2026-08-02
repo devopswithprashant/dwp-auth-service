@@ -43,11 +43,6 @@ jobs:
           ref: ${{ steps.resolve_target.outputs.target }}
           fetch-depth: 0 # Fetch all history to check tags and commit positions
 
-      - name: Setup Git User
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@://github.com"
-
       - name: Fetch Current Version from Gradle
         id: gradle_version
         run: |
@@ -84,6 +79,9 @@ jobs:
 
       - name: Create and Push Git Tag
         run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           TAG_NAME="v${{ env.RELEASE_VERSION }}"
           echo "Creating Git Tag: $TAG_NAME"
           
