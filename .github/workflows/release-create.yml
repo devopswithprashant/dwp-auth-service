@@ -81,7 +81,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           TAG_NAME="v${{ env.RELEASE_VERSION }}"
           echo "Creating Git Tag: $TAG_NAME"
           
@@ -131,5 +131,5 @@ jobs:
           
           # Commit and push changes back upstream to main
           git add build.gradle.kts
-          git commit -m "chore: bump development version to $NEW_DEV_VERSION [skip ci]"
+          git commit -m "chore: bump next development version to $NEW_DEV_VERSION [skip ci]"
           git push origin main
