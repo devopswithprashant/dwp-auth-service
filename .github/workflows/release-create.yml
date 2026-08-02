@@ -37,14 +37,14 @@ jobs:
           git config user.email "devopswithprashant@gmail.com"
           git config user.name "devopswithprashant"
 
-          # Use automatic versioning mode to handle the release and next dev versions headless
-          RELEASE_OPTS="-Pgradle.release.useAutomaticVersion=true"
+          # Use exact property keys defined by the researchgate plugin for headless execution
+          RELEASE_OPTS="-Prelease.useAutomaticVersion=true"
           
-          # Override the next development version if explicitly provided by the user
+          # Pass the custom next development snapshot version if provided
           if [ -n "${{ github.event.inputs.next_version }}" ]; then
-            RELEASE_OPTS="$RELEASE_OPTS -PnewVersion=${{ github.event.inputs.next_version }}"
+            RELEASE_OPTS="$RELEASE_OPTS -Prelease.newVersion=${{ github.event.inputs.next_version }}"
           fi
           
-          echo "Running gradle release plugin against HEAD..."
+          echo "Running gradle release plugin in non-interactive mode..."
           ./gradlew release $RELEASE_OPTS
 
