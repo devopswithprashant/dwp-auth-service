@@ -96,8 +96,8 @@ jobs:
         with:
           name: build-libs
           path: |
-            - build/libs/*.jar
-            - !build/libs/*-plain.jar
+              build/libs/*.jar
+              !build/libs/*-plain.jar
 
 
 

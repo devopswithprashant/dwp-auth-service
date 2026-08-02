@@ -94,3 +94,7 @@ tasks.jacocoTestCoverageVerification {
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
 }
+
+tasks.named<Jar>("jar") {
+    enabled = false // Disables creation of the -plain.jar file
+}
