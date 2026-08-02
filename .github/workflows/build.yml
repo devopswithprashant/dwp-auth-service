@@ -38,7 +38,7 @@ env:
 
 
 jobs:
-  maven:
+  gradle-build-test:
     runs-on: ubuntu-latest
     #outputs:
     #  projectVersion: ${{ steps.project_version.outputs.version }}
@@ -60,7 +60,7 @@ jobs:
 
     - uses: actions/checkout@v6
 
-    - uses: actions/setup-java@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '17'
