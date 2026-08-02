@@ -94,24 +94,30 @@ jobs:
     - name: Compile & Build
       run: ./gradlew clean build -x test
     
-    # - name: Upload build artifact (target/)
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: build-target
-    #     # upload whole target directory. Use a glob if you prefer only jar files (target/*.jar)
-    #     path: target/*
+    - name: Upload build artifact (build/libs/)
+      uses: actions/upload-artifact@v6
+      with:
+        name: build-target
+        path: target/*.jar
     
 
-    # - name: Wait for Postgres to be ready
-    #   run: |
-    #       # Service container is reachable at localhost:5432 on GitHub-hosted runner
-    #       for i in $(seq 1 30); do
-    #         pg_isready -h localhost -p 5432 -U testuser && break
-    #         echo "Waiting for postgres..."
-    #         sleep 2
-    #       done
-    #   env:
-    #     PGPASSWORD: testpass
+    - name: Wait for Postgres to be ready
+      run: |
+          # Service container is reachable at localhost:5432 on GitHub-hosted runner
+          for i in $(seq 1 30); do
+            pg_isready -h localhost -p 5432 -U testuser && break
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+      env:
+        PGPASSWORD: testpass
+
+    - name: Run Tests
+      run: ./gradlew test
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+        SPRING_DATASOURCE_USERNAME: testuser
+        SPRING_DATASOURCE_PASSWORD: testpass
 
     # - name: Test
     #   run: mvn clean test -P citestcase -Ddb.url=$dburl -Ddb.username=$dbuser -Ddb.password=$dbpass
