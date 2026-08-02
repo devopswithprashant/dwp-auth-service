@@ -100,7 +100,3 @@ tasks.named<Jar>("jar") {
 }
 
 
-release {
-    tagTemplate = "v${version}"
-    versionPropertyFile = "gradle.properties"
-}
