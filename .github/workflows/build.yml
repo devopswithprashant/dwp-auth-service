@@ -34,8 +34,10 @@ env:
 
 
 jobs:
-  gradle-build-test:
+  gradle:
     runs-on: ubuntu-latest
+    outputs:
+      projectVersion: ${{ steps.project_version.outputs.version }}
     services:
       postgres:
         image: postgres:16
@@ -60,6 +62,12 @@ jobs:
       #   with:
       #     distribution: 'temurin' # See 'Supported distributions' for available options
       #     java-version: '17'
+
+      - name: Extract Gradle Project Version
+        id: project_version
+        run: |
+          VERSION=$(./gradlew properties -q | grep "^version:" | await awk '{print $2}' || ./gradlew properties -q | grep "^version:" | cut -d' ' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       
       - name: Gradle Compile
         run: ./gradlew clean compileKotlin
@@ -89,54 +97,57 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: build-target
-          path: build/libs/*.jar
+          path: 
+            - build/libs/*.jar
+            - !build/libs/*-plain.jar
 
 
 
-  # docker:
-  #   runs-on: ubuntu-latest
-  #   needs: maven
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v5
-  #       with:
-  #         role-to-assume: ${{ secrets.AWS_ECR_NONPROD_PUSH_ROLE }}  # or use a secret: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-  #         role-session-name: GitHubActionsECR
-  #         aws-region: ${{ env.AWS_REGION }}
+  docker:
+    runs-on: ubuntu-latest
+    needs: gradle
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  #     - name: Log in to Amazon ECR
-  #       uses: aws-actions/amazon-ecr-login@v2
-  #       # amazon-ecr-login uses current AWS credentials and logs docker to ECR
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_ECR_NONPROD_PUSH_ROLE }}  # or use a secret: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionsECR
+          aws-region: ${{ env.AWS_REGION }}
 
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v3
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        # amazon-ecr-login uses current AWS credentials and logs docker to ECR
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       
-  #     # in docker job (download step)
-  #     - name: Download build artifact (target/)
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build-target
-  #         path: target     # <--- downloads artifact contents into ./target
+      # in docker job (download step)
+      - name: Download build artifact (target/)
+        uses: actions/download-artifact@v4
+        with:
+          name: build-target
+          path: build/libs     # <--- downloads artifact contents into ./target
 
-  #     - name: Build and push to ECR
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         context: .
-  #         file: ./Dockerfile
-  #         push: true
-  #         platforms: linux/amd64,linux/arm64
-  #         tags: |
-  #           ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
-  #           ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.maven.outputs.projectVersion }}-${{ github.sha }}
-  #         # Optional: use GitHub Actions cache for build layers (fast incremental builds)
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=max
+      - name: Build and push to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.gradle.outputs.projectVersion }}-${{ github.sha }}
+          # Optional: use GitHub Actions cache for build layers (fast incremental builds)
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   
   # deploy-DEV:
