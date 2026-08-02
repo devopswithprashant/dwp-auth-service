@@ -58,9 +58,11 @@ jobs:
           --health-retries 5
     steps:
 
-    - uses: actions/checkout@v6
+    - name: Checkout code
+      uses: actions/checkout@v6
 
-    - uses: actions/setup-java@v5
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '17'
@@ -91,14 +93,14 @@ jobs:
     #     VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
     #     echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Compile & Build
+    - name: Gradle Compile & Build
       run: ./gradlew clean build -x test
     
     - name: Upload build artifact (build/libs/)
       uses: actions/upload-artifact@v6
       with:
         name: build-target
-        path: target/*.jar
+        path: build/libs/*.jar
     
 
     - name: Wait for Postgres to be ready
