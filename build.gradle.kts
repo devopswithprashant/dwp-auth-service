@@ -4,8 +4,11 @@ plugins {
     kotlin("plugin.jpa") version "2.2.20"
     id("org.springframework.boot") version "3.5.4"
     id("io.spring.dependency-management") version "1.1.7"
+    id("net.researchgate.release") version '3.1.0'
     id("jacoco")
 }
+
+
 
 group = "com.devopswithprashant.service"
 version = "0.0.1-SNAPSHOT"
