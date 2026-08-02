@@ -1,0 +1,68 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
+
+name: PR build check
+
+on: pull_request
+
+permissions:
+  contents: read
+
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+
+
+
+
+jobs:
+  gradle:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      
+      - name: Gradle Compile
+        run: ./gradlew clean compileKotlin
+
+      - name: Wait for Postgres to be ready
+        run: |
+            # Service container is reachable at localhost:5432 on GitHub-hosted runner
+            for i in $(seq 1 30); do
+              pg_isready -h localhost -p 5432 -U testuser && break
+              echo "Waiting for postgres..."
+              sleep 2
+            done
+        env:
+          PGPASSWORD: testpass
+
+      - name: Run Tests
+        run: ./gradlew test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          SPRING_DATASOURCE_USERNAME: testuser
+          SPRING_DATASOURCE_PASSWORD: testpass
+      
+      - name: Gradle Build
+        run: |
+          ./gradlew clean build -x test
+
+          
