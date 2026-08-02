@@ -26,11 +26,22 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
+      - name: Resolve Checkout Target
+        id: resolve_target
+        run: |
+          INPUT_COMMIT="${{ github.event.inputs.commit }}"
+          # If the user leaves it as HEAD, target the 'main' branch explicitly
+          if [[ "$INPUT_COMMIT" = "HEAD" || "$INPUT_COMMIT" = "" ]]; then
+            echo "target=main" >> $GITHUB_OUTPUT
+          else
+            echo "target=$INPUT_COMMIT" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.commit }}
-          fetch-depth: 0 # Fetch all history to compare commit positions
+          ref: ${{ steps.resolve_target.outputs.target }}
+          fetch-depth: 0 # Fetch all history to check tags and commit positions
 
       - name: Setup Git User
         run: |
