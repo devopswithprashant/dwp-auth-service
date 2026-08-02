@@ -99,4 +99,7 @@ tasks.named<Jar>("jar") {
     enabled = false // Disables creation of the -plain.jar file
 }
 
+release {
+    tagTemplate = "v${version}"
+}
 
