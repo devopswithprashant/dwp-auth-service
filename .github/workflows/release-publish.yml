@@ -6,7 +6,7 @@ name: Release Publish
 on:
   push:
     tags:
-      - "v*"
+      - "*"
 
 
 
