@@ -60,7 +60,7 @@ jobs:
       - name: Extract Gradle Project Version
         id: project_version
         run: |
-          VERSION=$(./gradlew properties -q | grep "^version:" | await awk '{print $2}' || ./gradlew properties -q | grep "^version:" | cut -d' ' -f2)
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}' || ./gradlew properties -q | grep "^version:" | cut -d' ' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       
       - name: Gradle Compile
