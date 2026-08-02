@@ -100,6 +100,6 @@ tasks.named<Jar>("jar") {
 }
 
 release {
-    tagTemplate = "v${version}"
+    tagTemplate.set("v\${version}")
 }
 
