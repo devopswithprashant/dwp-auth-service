@@ -22,10 +22,6 @@ concurrency:
 
 
 env:
-  #ARTIFACTORY_DEV_USER: ${{ secrets.ARTIFACTORY_DEV_USER }}
-  #ARTIFACTORY_DEV_KEY: ${{ secrets.ARTIFACTORY_DEV_KEY }}
-  #ARTIFACTORY_RELEASE_USER: ${{ secrets.ARTIFACTORY_RELEASE_USER }}
-  #ARTIFACTORY_RELEASE_KEY: ${{ secrets.ARTIFACTORY_RELEASE_KEY }}
   # Set defaults here or as repository/organization variables (recommended)
   AWS_REGION: us-east-1           # <- change to your region or set as repo variable
   AWS_ACCOUNT_ID: 850756192530      # <- change to your AWS account id or set as repo var
@@ -40,8 +36,6 @@ env:
 jobs:
   gradle-build-test:
     runs-on: ubuntu-latest
-    #outputs:
-    #  projectVersion: ${{ steps.project_version.outputs.version }}
     services:
       postgres:
         image: postgres:16
@@ -56,80 +50,47 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-    - name: Checkout code
-      uses: actions/checkout@v6
+      # - name: Set up JDK 17
+      #   uses: actions/setup-java@v5
+      #   with:
+      #     distribution: 'temurin' # See 'Supported distributions' for available options
+      #     java-version: '17'
+      
+      - name: Gradle Compile
+        run: ./gradlew clean compileKotlin
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v5
-      with:
-        distribution: 'temurin' # See 'Supported distributions' for available options
-        java-version: '17'
-    
-    
+      - name: Wait for Postgres to be ready
+        run: |
+            # Service container is reachable at localhost:5432 on GitHub-hosted runner
+            for i in $(seq 1 30); do
+              pg_isready -h localhost -p 5432 -U testuser && break
+              echo "Waiting for postgres..."
+              sleep 2
+            done
+        env:
+          PGPASSWORD: testpass
 
-    # - name: Setup Maven Action
-    #   uses: s4u/setup-maven-action@v1.19.0
-    #   with:
-    #       java-version: 17
-    #       java-distribution: 'temurin'
-    #       maven-version: 3.9.11
-    #       settings-servers: |
-    #         [{
-    #           "id": "myreleaserepo",
-    #           "username": "${env.ARTIFACTORY_RELEASE_USER}",
-    #           "password": "${env.ARTIFACTORY_RELEASE_KEY}"
-    #         },
-    #         {
-    #           "id": "mysnapshotrepo",
-    #           "username": "${env.ARTIFACTORY_DEV_USER}",
-    #           "password": "${env.ARTIFACTORY_DEV_KEY}"
-    #         }]
-    
-    # - name: Get project version from POM
-    #   id: project_version
-    #   run: |
-    #     VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-    #     echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Run Tests
+        run: ./gradlew test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          SPRING_DATASOURCE_USERNAME: testuser
+          SPRING_DATASOURCE_PASSWORD: testpass
+      
+      - name: Gradle Build
+        run: ./gradlew clean build -x test
+      
+      - name: Upload build artifact (build/libs/)
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-target
+          path: build/libs/*.jar
 
-    - name: Gradle Compile & Build
-      run: ./gradlew clean build -x test
-    
-    - name: Upload build artifact (build/libs/)
-      uses: actions/upload-artifact@v6
-      with:
-        name: build-target
-        path: build/libs/*.jar
-    
-
-    - name: Wait for Postgres to be ready
-      run: |
-          # Service container is reachable at localhost:5432 on GitHub-hosted runner
-          for i in $(seq 1 30); do
-            pg_isready -h localhost -p 5432 -U testuser && break
-            echo "Waiting for postgres..."
-            sleep 2
-          done
-      env:
-        PGPASSWORD: testpass
-
-    - name: Run Tests
-      run: ./gradlew test
-      env:
-        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
-        SPRING_DATASOURCE_USERNAME: testuser
-        SPRING_DATASOURCE_PASSWORD: testpass
-
-    # - name: Test
-    #   run: mvn clean test -P citestcase -Ddb.url=$dburl -Ddb.username=$dbuser -Ddb.password=$dbpass
-    #   env:
-    #     dburl: "jdbc:postgresql://localhost:5432/testdb?serverTimezone=UTC"
-    #     dbuser: testuser
-    #     dbpass: testpass
-    
-    # - name: Publish
-    #   run: mvn clean deploy --file pom.xml -DskipTests -B
 
 
   # docker:
