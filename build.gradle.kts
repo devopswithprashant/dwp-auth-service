@@ -8,10 +8,7 @@ plugins {
     id("jacoco")
 }
 
-
-
 group = "com.devopswithprashant.service"
-version = "0.0.10-SNAPSHOT"
 
 java {
 	toolchain {
@@ -100,4 +97,10 @@ tasks.check {
 
 tasks.named<Jar>("jar") {
     enabled = false // Disables creation of the -plain.jar file
+}
+
+
+release {
+    tagTemplate = "v${version}"
+    versionPropertyFile = "gradle.properties"
 }

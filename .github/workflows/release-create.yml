@@ -3,11 +3,6 @@ name: "Release Create"
 on:
   workflow_dispatch:
     inputs:
-      commit:
-        description: 'Commit to release (HEAD or specific commit SHA)'
-        required: true
-        default: 'HEAD'
-        type: string
       next_version:
         description: 'Next development version (e.g., 1.2.0-SNAPSHOT). Leave empty to auto-increment patch.'
         required: false
@@ -17,124 +12,39 @@ on:
 permissions:
   contents: write
 
-
 env:
   GHEC_TOKEN: ${{ secrets.GH_AUTOMATION_TOKEN }}
+
 
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    # Enforce execution context exclusively on the main branch
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Resolve Checkout Target
-        id: resolve_target
-        run: |
-          INPUT_COMMIT="${{ github.event.inputs.commit }}"
-          if [ "$INPUT_COMMIT" = "HEAD" ]; then
-            echo "target=main" >> $GITHUB_OUTPUT
-          else
-            echo "target=$INPUT_COMMIT" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Checkout Target Commit Code
+      - name: Checkout Main Branch HEAD
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.resolve_target.outputs.target }}
-          fetch-depth: 0 
-          token: ${{ secrets.GH_AUTOMATION_TOKEN }}
+          fetch-depth: 0 # Fetches full history so the plugin can read previous tags
+          token: ${{ secrets.GH_AUTOMATION_TOKEN }} # Using a PAT allows the pushed tag to trigger your Publish workflow
 
 
-      - name: Fetch Target Version and Validate SNAPSHOT
-        id: gradle_version
+      - name: Execute Gradle Release Plugin
         run: |
-          # 1. Grab the version string from the currently checked-out target commit
-          CURRENT_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          echo "Target commit project version: $CURRENT_VERSION"
-          
-          # Validation 1: Ensure it ends with -SNAPSHOT
-          if [[ ! "$CURRENT_VERSION" =~ -SNAPSHOT$ ]]; then
-            echo "ERROR: Current version '$CURRENT_VERSION' is not a -SNAPSHOT version. Exiting."
-            exit 1
-          fi
-          
-          # Save clean release version (e.g., 1.2.0)
-          RELEASE_VERSION="${CURRENT_VERSION%-SNAPSHOT}"
-          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
-          echo "TARGET_COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
-      - name: Validate Remote Tag Existence
-        run: |
-          TAG_NAME="v${{ env.RELEASE_VERSION }}"
-          git fetch --tags
-          
-          # Validation 2: Ensure tag doesn't already exist on GitHub
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "ERROR: The Git Tag '$TAG_NAME' already exists in the repository. Aborting."
-            exit 1
-          fi
-
-      - name: Generate Clean Code, Tag, and Push
-        run: |
+          # Setup Git User configs
           git config user.email "devopswithprashant@gmail.com"
           git config user.name "devopswithprashant"
 
-          TAG_NAME="v${{ env.RELEASE_VERSION }}"
-          CLEAN_VERSION="${{ env.RELEASE_VERSION }}"
+          # Use automatic versioning mode to handle the release and next dev versions headless
+          RELEASE_OPTS="-Pgradle.release.useAutomaticVersion=true"
           
-          echo "Temporarily stripping -SNAPSHOT suffix from files..."
-          sed -i "s/version = .*/version = \"$CLEAN_VERSION\"/g" build.gradle.kts
-          sed -i "s/version.set(.*/version.set(\"$CLEAN_VERSION\")/g" build.gradle.kts
+          # Override the next development version if explicitly provided by the user
+          if [ -n "${{ github.event.inputs.next_version }}" ]; then
+            RELEASE_OPTS="$RELEASE_OPTS -PnewVersion=${{ github.event.inputs.next_version }}"
+          fi
           
-          echo "Creating temporary clean local release commit..."
-          git add build.gradle.kts
-          git commit -m "chore: release version $CLEAN_VERSION [skip ci]"
-          
-          # Capture this precise clean local commit SHA to attach the tag to
-          CLEAN_COMMIT_SHA=$(git rev-parse HEAD)
-          
-          echo "Creating Git Tag '$TAG_NAME' on clean code..."
-          git tag -a "$TAG_NAME" $CLEAN_COMMIT_SHA -m "Release $TAG_NAME"
-          git push origin "$TAG_NAME"
+          echo "Running gradle release plugin against HEAD..."
+          ./gradlew release $RELEASE_OPTS
 
-      - name: Handle Main Branch Version Update
-        run: |
-          INPUT_NEXT_VERSION="${{ github.event.inputs.next_version }}"
-          TARGET_SHA="${{ env.TARGET_COMMIT_SHA }}"
-          
-          echo "Switching context back to the remote main branch HEAD..."
-          # This drops our local temporary clean commit completely, restoring clean git state
-          git checkout main
-          git pull origin main
-          
-          MAIN_HEAD_SHA=$(git rev-parse HEAD)
-          
-          # Case 1: The user passed a historic commit that is behind the current main HEAD
-          if [ "$TARGET_SHA" != "$MAIN_HEAD_SHA" ]; then
-            echo "The released commit ($TARGET_SHA) is behind main HEAD ($MAIN_HEAD_SHA)."
-            echo "Skipping main branch version update to preserve newer work."
-            exit 0
-          fi
-          
-          # Case 2: The released commit IS the head of main. Proceed to bump.
-          echo "Target commit matches main branch HEAD. Calculating next version..."
-          
-          if [ -n "$INPUT_NEXT_VERSION" ]; then
-            NEW_DEV_VERSION="$INPUT_NEXT_VERSION"
-          else
-            # Auto-calculate next patch version from the clean release version
-            IFS='.' read -r major minor patch <<< "${{ env.RELEASE_VERSION }}"
-            NEXT_PATCH=$((patch + 1))
-            NEW_DEV_VERSION="${major}.${minor}.${NEXT_PATCH}-SNAPSHOT"
-          fi
-          
-          echo "Targeting next development version: $NEW_DEV_VERSION"
-          
-          # Permanently update the version property on main branch
-          sed -i "s/version = .*/version = \"$NEW_DEV_VERSION\"/g" build.gradle.kts
-          sed -i "s/version.set(.*/version.set(\"$NEW_DEV_VERSION\")/g" build.gradle.kts
-          
-          git add build.gradle.kts
-          git commit -m "chore: bump next development version to $NEW_DEV_VERSION [skip ci]"
-          git push origin main
