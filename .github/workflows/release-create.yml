@@ -30,6 +30,10 @@ jobs:
           fetch-depth: 0 # Fetches full history so the plugin can read previous tags
           token: ${{ secrets.GH_AUTOMATION_TOKEN }} # Using a PAT allows the pushed tag to trigger your Publish workflow
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Execute Gradle Release Plugin
         run: |
