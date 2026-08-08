@@ -166,6 +166,11 @@ jobs:
           token: ${{ secrets.GHEC_TOKEN_K8 }}
           ref: ${{ env.GITOPS_BRANCH_NAME }}
           fetch-depth: 10
+      
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Update image tag in target file
         #working-directory: gitops
