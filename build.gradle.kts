@@ -130,8 +130,8 @@ tasks.named<Jar>("jar") {
 
 sonar {
   properties {
-    property "sonar.projectKey", "devopswithprashant_dwp-auth-service_575f870e-c807-46e8-8ac7-de468306de07"
-    property "sonar.projectName", "dwp-auth-service"
+    property("sonar.projectKey", "devopswithprashant_dwp-auth-service_575f870e-c807-46e8-8ac7-de468306de07")
+    property("sonar.projectName", "dwp-auth-service")
   }
 }
 
