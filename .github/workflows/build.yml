@@ -41,7 +41,7 @@ jobs:
       projectVersion: ${{ steps.project_version.outputs.version }}
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         ports:
           - 5432:5432
         env:
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Extract Gradle Project Version
         id: project_version
@@ -150,6 +150,15 @@ jobs:
           # Optional: use GitHub Actions cache for build layers (fast incremental builds)
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.gradle.outputs.projectVersion }}-${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'          # Fails the pipeline if vulnerabilities are found
+          ignore-unfixed: true     # Optional: ignore CVEs without an available fix
+          severity: 'CRITICAL,HIGH'
 
   
   deploy-DEV:

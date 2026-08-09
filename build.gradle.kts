@@ -10,10 +10,11 @@ plugins {
 
 group = "com.devopswithprashant.service"
 
+
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 repositories {
