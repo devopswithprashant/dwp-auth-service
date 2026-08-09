@@ -43,6 +43,8 @@ dependencyManagement {
         dependency("org.springframework:spring-core:6.2.19")
         dependency("org.springframework:spring-expression:6.2.19")
         dependency("org.springframework:spring-webmvc:6.2.19")
+
+        dependency("org.springframework.data:spring-data-commons:3.5.12")
     }
 }
 
