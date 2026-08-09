@@ -142,7 +142,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: false
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: |
             ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
@@ -159,20 +159,6 @@ jobs:
           exit-code: '1'          # Fails the pipeline if vulnerabilities are found
           ignore-unfixed: true     # Optional: ignore CVEs without an available fix
           severity: 'CRITICAL,HIGH'
-
-      - name: Build and push to ECR
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
-            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.gradle.outputs.projectVersion }}-${{ github.sha }}
-          # Optional: use GitHub Actions cache for build layers (fast incremental builds)
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   
   deploy-DEV:
