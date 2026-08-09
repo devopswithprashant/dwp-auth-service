@@ -6,6 +6,7 @@ plugins {
     id("org.springframework.boot") version "3.5.14"
     id("io.spring.dependency-management") version "1.1.7"
     id("net.researchgate.release") version "3.1.0"
+    id ("org.sonarqube") version "7.3.1.8318"
     id("jacoco")
 }
 
@@ -16,6 +17,7 @@ java {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
+
 
 repositories {
     mavenCentral()
@@ -123,6 +125,14 @@ tasks.check {
 
 tasks.named<Jar>("jar") {
     enabled = false // Disables creation of the -plain.jar file
+}
+
+
+sonar {
+  properties {
+    property "sonar.projectKey", "devopswithprashant_dwp-auth-service_575f870e-c807-46e8-8ac7-de468306de07"
+    property "sonar.projectName", "dwp-auth-service"
+  }
 }
 
 release {

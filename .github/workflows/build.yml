@@ -84,15 +84,16 @@ jobs:
           PGPASSWORD: testpass
 
       - name: Run Tests
-        run: ./gradlew test
+        run: ./gradlew test sonar --info
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       
       - name: Gradle Build
-        run: |
-          ./gradlew clean build -x test
+        run: ./gradlew clean build -x test
       
       - name: Upload build artifact (build/libs/)
         uses: actions/upload-artifact@v6
