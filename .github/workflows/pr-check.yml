@@ -59,15 +59,47 @@ jobs:
         env:
           PGPASSWORD: testpass
 
-      - name: Run Tests
-        run: ./gradlew test
+      - name: Run Tests with SonarQube Analysis
+        run: ./gradlew test sonar --info
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       
       - name: Gradle Build
         run: |
           ./gradlew clean build -x test
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          platforms: linux/arm64
+          tags: |
+            dwp-auth-service:${{ github.sha }}
+          # Optional: use GitHub Actions cache for build layers (fast incremental builds)
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'dwp-auth-service:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'          # Fails the pipeline if vulnerabilities are found
+          ignore-unfixed: true     # Optional: ignore CVEs without an available fix
+          severity: 'CRITICAL,HIGH'
+
 
           
