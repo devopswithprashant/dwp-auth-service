@@ -45,7 +45,7 @@ jobs:
       projectVersion: ${{ steps.project_version.outputs.version }}
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         ports:
           - 5432:5432
         env:
@@ -61,6 +61,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Extract Gradle Project Version
         id: project_version
@@ -170,7 +175,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Update image tag in target file
         #working-directory: gitops
