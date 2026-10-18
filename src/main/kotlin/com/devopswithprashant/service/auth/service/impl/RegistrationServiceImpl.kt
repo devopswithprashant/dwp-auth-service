@@ -9,6 +9,7 @@ import com.devopswithprashant.service.auth.mapper.UserCredentialMapper
 import com.devopswithprashant.service.auth.repository.RoleRepository
 import com.devopswithprashant.service.auth.repository.UserCredentialRepository
 import com.devopswithprashant.service.auth.service.RegistrationService
+import com.devopswithprashant.service.auth.service.UserProfileProvisioningService
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -24,7 +25,9 @@ class RegistrationServiceImpl(
 
     private val passwordEncoder: PasswordEncoder,
 
-    private val mapper: UserCredentialMapper
+    private val mapper: UserCredentialMapper,
+
+    private val userProfileProvisioningService: UserProfileProvisioningService
 
 ) : RegistrationService {
 
@@ -69,7 +72,9 @@ class RegistrationServiceImpl(
         user.assignRole(defaultRole)
 
         val savedUser =
-            userCredentialRepository.save(user)
+            userCredentialRepository.saveAndFlush(user)
+
+        userProfileProvisioningService.enqueue(savedUser.id)
 
         logger.info("Registration succeeded for userId={}, username={}", savedUser.id, savedUser.username)
 

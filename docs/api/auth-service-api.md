@@ -17,9 +17,18 @@ Request:
 
 Success: **201 Created**
 
+The response includes `profileProvisioningStatus: "PENDING"`. The Auth identity
+and a durable provisioning job are committed together; the User Service call
+runs asynchronously and may complete after this response.
+
 Errors:
 - AUTH-001 Username already exists
 - AUTH-002 Email already exists
+
+Profile provisioning failures do not roll back a committed Auth identity.
+Transient `UNAVAILABLE` and `DEADLINE_EXCEEDED` outcomes are retried with
+bounded exponential backoff. Terminal or exhausted jobs are recorded as
+`FAILED` in the Auth database for operational reconciliation.
 
 ---
 

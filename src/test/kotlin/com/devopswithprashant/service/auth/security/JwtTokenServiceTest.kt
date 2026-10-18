@@ -7,12 +7,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.Base64
 import java.util.UUID
 
 class JwtTokenServiceTest {
 
     private val jwtProperties = JwtProperties(
-        secret = "0123456789abcdef0123456789abcdef",
+        secret = "0123456789abcdef0123456789abcdef0123456789abcdef",
         issuer = "auth-service",
         audience = "auth-clients",
         accessTokenValidity = 3600
@@ -35,6 +36,17 @@ class JwtTokenServiceTest {
         assertTrue(tokenResponse.accessToken.isNotBlank())
         assertEquals("alice", jwtTokenService.extractUsername(tokenResponse.accessToken))
         assertEquals(user.id.toString(), jwtTokenService.extractSubject(tokenResponse.accessToken))
+
+        val header = Base64.getUrlDecoder()
+            .decode(tokenResponse.accessToken.substringBefore('.'))
+            .decodeToString()
+        val claims = jwtTokenService.extractClaims(tokenResponse.accessToken)
+        assertTrue(header.contains("\"alg\":\"HS384\""))
+        assertEquals("auth-service", claims.issuer)
+        assertTrue(claims["aud"].toString().contains("auth-clients"))
+        assertEquals(user.id.toString(), claims.subject)
+        assertTrue(claims.issuedAt != null)
+        assertTrue(claims.expiration != null)
     }
 
     @Test

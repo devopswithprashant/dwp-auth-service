@@ -7,6 +7,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("net.researchgate.release") version "3.1.0"
     id ("org.sonarqube") version "7.3.1.8318"
+    id("com.google.protobuf") version "0.9.5"
     id("jacoco")
 }
 
@@ -57,6 +58,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
+    implementation("io.grpc:grpc-netty-shaded:1.75.0")
+    implementation("io.grpc:grpc-protobuf:1.75.0")
+    implementation("io.grpc:grpc-stub:1.75.0")
+    implementation("com.google.protobuf:protobuf-java:4.32.1")
+
     implementation("io.jsonwebtoken:jjwt-api:0.12.7")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
@@ -73,6 +79,31 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.springframework.security:spring-security-test")
+}
+
+protobuf {
+    sourceSets {
+        main {
+            proto {
+                srcDir("src/main/protobuf")
+            }
+        }
+    }
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.32.1"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.75.0"
+        }
+    }
+    generateProtoTasks {
+        all().configureEach {
+            plugins {
+                create("grpc")
+            }
+        }
+    }
 }
 
 kotlin {
@@ -99,8 +130,19 @@ tasks.test {
     finalizedBy(tasks.jacocoTestReport)
 }
 
+val generatedGrpcClasses = "com/devopswithprashant/user/v1/**"
+
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map { directory ->
+                fileTree(directory) {
+                    exclude(generatedGrpcClasses)
+                }
+            }
+        )
+    )
     reports {
         xml.required.set(true)
         html.required.set(true)
@@ -110,6 +152,15 @@ tasks.jacocoTestReport {
 
 tasks.jacocoTestCoverageVerification {
     dependsOn(tasks.test)
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map { directory ->
+                fileTree(directory) {
+                    exclude(generatedGrpcClasses)
+                }
+            }
+        )
+    )
     violationRules {
         rule {
             limit {
