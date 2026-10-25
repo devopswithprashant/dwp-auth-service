@@ -1,17 +1,17 @@
 package com.devopswithprashant.service.auth.service.impl
 
-import com.devopswithprashant.service.auth.config.UserProfileProperties
+import com.devopswithprashant.service.auth.config.ProfileServiceProperties
 import com.devopswithprashant.service.auth.service.UserProfileProvisioner
-import com.devopswithprashant.user.v1.CreateDefaultProfileRequest
-import com.devopswithprashant.user.v1.UserProfileServiceGrpc
+import com.devopswithprashant.profile.v1.CreateDefaultProfileRequest
+import com.devopswithprashant.profile.v1.ProfileServiceGrpc
 import org.springframework.stereotype.Component
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @Component
 class GrpcUserProfileProvisioner(
-    private val stub: UserProfileServiceGrpc.UserProfileServiceBlockingStub,
-    private val properties: UserProfileProperties
+    private val stub: ProfileServiceGrpc.ProfileServiceBlockingStub,
+    private val properties: ProfileServiceProperties
 ) : UserProfileProvisioner {
 
     override fun createDefaultProfile(userId: UUID): UUID {
@@ -33,4 +33,4 @@ class GrpcUserProfileProvisioner(
 }
 
 class ProfileProvisioningResponseMismatchException :
-    RuntimeException("User Service returned a different user_id")
+    RuntimeException("Profile Service returned a different user_id")

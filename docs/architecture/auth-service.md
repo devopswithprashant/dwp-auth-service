@@ -7,7 +7,7 @@ API Gateway (future)
     |
 Auth Service
     |                         |
-PostgreSQL              User Service (gRPC)
+PostgreSQL              Profile Service (gRPC)
 ```
 
 Authentication Flow
@@ -21,7 +21,7 @@ Client -> JWT Filter -> Validate Token -> Load User -> SecurityContext -> Contro
 
 ## Profile provisioning
 
-The Auth Service owns the identity and credentials; the User Service owns
+The Auth Service owns the identity and credentials; the Profile Service owns
 profile data. Registration writes the Auth identity and a `PENDING`
 `user_profile_provisioning` record in one Auth database transaction. A scheduled
 worker claims jobs using a short database lease, commits the claim, and only
@@ -56,7 +56,7 @@ Do not create a second Auth identity or manually alter profile data to recover
 a job.
 
 The gRPC channel uses plaintext and is intended only for a trusted internal
-network, consistent with the current User Service server. Do not expose it to
+network, consistent with the current Profile Service server. Do not expose it to
 untrusted networks. JWTs are not forwarded as gRPC authentication.
 
 ### Runtime configuration
@@ -67,14 +67,14 @@ deployment rather than relying on local defaults:
 
 | Variable | Purpose |
 | --- | --- |
-| `USER_PROFILE_GRPC_TARGET` | User Service gRPC target, e.g. `user-service:9090` |
-| `USER_PROFILE_GRPC_DEADLINE` | Per-RPC deadline, e.g. `3s` |
-| `USER_PROFILE_POLL_INTERVAL` | Durable queue poll interval, e.g. `1s` |
-| `USER_PROFILE_RETRY_INITIAL_BACKOFF` | First retry delay, e.g. `5s` |
-| `USER_PROFILE_RETRY_MAX_BACKOFF` | Backoff cap, e.g. `15m` |
-| `USER_PROFILE_RETRY_MAX_ATTEMPTS` | Maximum RPC attempts |
-| `USER_PROFILE_LEASE_DURATION` | Claim lease; must exceed the RPC deadline |
-| `JWT_SECRET` | Shared Auth/User HS384 signing secret (at least 48 UTF-8 bytes) |
+| `PROFILE_SERVICE_GRPC_TARGET` | Profile Service gRPC target, e.g. `profile-service:9090` |
+| `PROFILE_SERVICE_GRPC_DEADLINE` | Per-RPC deadline, e.g. `3s` |
+| `PROFILE_SERVICE_POLL_INTERVAL` | Durable queue poll interval, e.g. `1s` |
+| `PROFILE_SERVICE_RETRY_INITIAL_BACKOFF` | First retry delay, e.g. `5s` |
+| `PROFILE_SERVICE_RETRY_MAX_BACKOFF` | Backoff cap, e.g. `15m` |
+| `PROFILE_SERVICE_RETRY_MAX_ATTEMPTS` | Maximum RPC attempts |
+| `PROFILE_SERVICE_LEASE_DURATION` | Claim lease; must exceed the RPC deadline |
+| `JWT_SECRET` | Shared Auth/Profile HS384 signing secret (at least 48 UTF-8 bytes) |
 | `JWT_ISSUER` | Must be `devopswithprashant-auth` |
 | `JWT_AUDIENCE` | Must be `devopswithprashant-platform` |
 | `JWT_ACCESS_TOKEN_VALIDITY` | Token lifetime in seconds, defaults to `3600` when unset |
@@ -84,9 +84,7 @@ least 48 UTF-8 bytes through `JWT_SECRET` for local runs and from the platform's
 secret manager in deployment.
 
 The checked-in proto snapshot at
-[`src/main/protobuf/user_profile.proto`](../../src/main/protobuf/user_profile.proto)
-is mirrored from the canonical
-[User Service contract](https://github.com/devopswithprashant/dwp-user-service/blob/main/src/main/protobuf/user_profile.proto).
-Regenerate the client from this snapshot. When changing the contract, update
-the snapshot from that canonical file and verify the RPC path remains
-`/dwp.userservice.v1.UserProfileService/CreateDefaultProfile`.
+[`src/main/protobuf/profile.proto`](../../src/main/protobuf/profile.proto)
+defines the Profile Service contract. Regenerate the client from this snapshot
+and verify the RPC path is
+`/dwp.profileservice.v1.ProfileService/CreateDefaultProfile`.

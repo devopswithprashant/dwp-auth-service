@@ -11,7 +11,7 @@ Spring Boot + Kotlin authentication service for the DevOps with Prashant platfor
 - Role-based authentication
 - Protected endpoints
 - Flyway migrations
-- Durable asynchronous User Service profile provisioning
+- Durable asynchronous Profile Service provisioning
 
 ## Technology Stack
 - Kotlin

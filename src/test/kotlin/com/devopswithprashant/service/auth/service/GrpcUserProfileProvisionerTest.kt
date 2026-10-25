@@ -1,11 +1,11 @@
 package com.devopswithprashant.service.auth.service
 
-import com.devopswithprashant.service.auth.config.UserProfileProperties
+import com.devopswithprashant.service.auth.config.ProfileServiceProperties
 import com.devopswithprashant.service.auth.service.impl.GrpcUserProfileProvisioner
 import com.devopswithprashant.service.auth.service.impl.ProfileProvisioningResponseMismatchException
-import com.devopswithprashant.user.v1.CreateDefaultProfileRequest
-import com.devopswithprashant.user.v1.CreateDefaultProfileResponse
-import com.devopswithprashant.user.v1.UserProfileServiceGrpc
+import com.devopswithprashant.profile.v1.CreateDefaultProfileRequest
+import com.devopswithprashant.profile.v1.CreateDefaultProfileResponse
+import com.devopswithprashant.profile.v1.ProfileServiceGrpc
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit
 class GrpcUserProfileProvisionerTest {
 
     @Mock
-    private lateinit var stub: UserProfileServiceGrpc.UserProfileServiceBlockingStub
+    private lateinit var stub: ProfileServiceGrpc.ProfileServiceBlockingStub
 
-    private val properties = UserProfileProperties()
+    private val properties = ProfileServiceProperties()
     private lateinit var provisioner: GrpcUserProfileProvisioner
 
     @BeforeEach

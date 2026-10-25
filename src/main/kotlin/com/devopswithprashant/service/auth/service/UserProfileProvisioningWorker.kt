@@ -1,6 +1,6 @@
 package com.devopswithprashant.service.auth.service
 
-import com.devopswithprashant.service.auth.config.UserProfileProperties
+import com.devopswithprashant.service.auth.config.ProfileServiceProperties
 import com.devopswithprashant.service.auth.service.impl.ProfileProvisioningResponseMismatchException
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -15,12 +15,12 @@ import java.util.UUID
 class UserProfileProvisioningWorker(
     private val provisioningService: UserProfileProvisioningService,
     private val provisioner: UserProfileProvisioner,
-    private val properties: UserProfileProperties
+    private val properties: ProfileServiceProperties
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Scheduled(fixedDelayString = "\${user-profile.poll-interval:1s}")
+    @Scheduled(fixedDelayString = "\${profile-service.poll-interval:1s}")
     fun processNext() {
         val now = Instant.now()
         val claim = provisioningService.claimNext(now, properties.leaseDuration) ?: return

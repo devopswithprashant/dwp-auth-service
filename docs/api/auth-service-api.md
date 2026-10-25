@@ -18,7 +18,7 @@ Request:
 Success: **201 Created**
 
 The response includes `profileProvisioningStatus: "PENDING"`. The Auth identity
-and a durable provisioning job are committed together; the User Service call
+and a durable provisioning job are committed together; the Profile Service call
 runs asynchronously and may complete after this response.
 
 Errors:

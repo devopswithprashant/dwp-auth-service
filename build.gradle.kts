@@ -130,7 +130,7 @@ tasks.test {
     finalizedBy(tasks.jacocoTestReport)
 }
 
-val generatedGrpcClasses = "com/devopswithprashant/user/v1/**"
+val generatedGrpcClasses = "com/devopswithprashant/profile/v1/**"
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)

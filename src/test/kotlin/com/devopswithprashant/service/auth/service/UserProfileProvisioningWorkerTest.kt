@@ -1,6 +1,6 @@
 package com.devopswithprashant.service.auth.service
 
-import com.devopswithprashant.service.auth.config.UserProfileProperties
+import com.devopswithprashant.service.auth.config.ProfileServiceProperties
 import io.grpc.Status
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ class UserProfileProvisioningWorkerTest {
     @Mock
     private lateinit var provisioner: UserProfileProvisioner
 
-    private val properties = UserProfileProperties(
+    private val properties = ProfileServiceProperties(
         retryInitialBackoff = Duration.ofSeconds(2),
         retryMaxBackoff = Duration.ofSeconds(30),
         retryMaxAttempts = 3

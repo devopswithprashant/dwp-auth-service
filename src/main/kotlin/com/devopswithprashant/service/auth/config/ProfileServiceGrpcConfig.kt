@@ -1,23 +1,23 @@
 package com.devopswithprashant.service.auth.config
 
-import com.devopswithprashant.user.v1.UserProfileServiceGrpc
+import com.devopswithprashant.profile.v1.ProfileServiceGrpc
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class UserProfileGrpcConfig {
+class ProfileServiceGrpcConfig {
 
     @Bean(destroyMethod = "shutdown")
-    fun userProfileChannel(properties: UserProfileProperties): ManagedChannel =
+    fun profileServiceChannel(properties: ProfileServiceProperties): ManagedChannel =
         ManagedChannelBuilder.forTarget(properties.grpcTarget)
             .usePlaintext()
             .build()
 
     @Bean
-    fun userProfileServiceBlockingStub(
+    fun profileServiceBlockingStub(
         channel: ManagedChannel
-    ): UserProfileServiceGrpc.UserProfileServiceBlockingStub =
-        UserProfileServiceGrpc.newBlockingStub(channel)
+    ): ProfileServiceGrpc.ProfileServiceBlockingStub =
+        ProfileServiceGrpc.newBlockingStub(channel)
 }
