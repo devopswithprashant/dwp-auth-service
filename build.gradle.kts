@@ -58,9 +58,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
-    implementation("io.grpc:grpc-netty-shaded:1.75.0")
-    implementation("io.grpc:grpc-protobuf:1.75.0")
-    implementation("io.grpc:grpc-stub:1.75.0")
+    implementation("io.grpc:grpc-netty-shaded:1.76.0")
+    implementation("io.grpc:grpc-protobuf:1.76.0")
+    implementation("io.grpc:grpc-stub:1.76.0")
     implementation("com.google.protobuf:protobuf-java:4.32.1")
 
     implementation("io.jsonwebtoken:jjwt-api:0.12.7")
@@ -94,7 +94,7 @@ protobuf {
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.75.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.76.0"
         }
     }
     generateProtoTasks {

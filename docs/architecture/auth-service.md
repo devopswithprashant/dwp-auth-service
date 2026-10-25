@@ -77,7 +77,7 @@ deployment rather than relying on local defaults:
 | `JWT_SECRET` | Shared Auth/User HS384 signing secret (at least 48 UTF-8 bytes) |
 | `JWT_ISSUER` | Must be `devopswithprashant-auth` |
 | `JWT_AUDIENCE` | Must be `devopswithprashant-platform` |
-| `JWT_ACCESS_TOKEN_VALIDITY` | Token lifetime in seconds, e.g. `3600` |
+| `JWT_ACCESS_TOKEN_VALIDITY` | Token lifetime in seconds, defaults to `3600` when unset |
 
 No JWT signing secret is checked into this repository. Supply a secret of at
 least 48 UTF-8 bytes through `JWT_SECRET` for local runs and from the platform's
