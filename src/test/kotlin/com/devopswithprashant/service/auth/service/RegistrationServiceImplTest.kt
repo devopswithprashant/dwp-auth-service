@@ -19,6 +19,8 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.any
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -37,6 +39,9 @@ class RegistrationServiceImplTest {
     @Mock
     private lateinit var mapper: UserCredentialMapper
 
+    @Mock
+    private lateinit var userProfileProvisioningService: UserProfileProvisioningService
+
     @InjectMocks
     private lateinit var registrationService: RegistrationServiceImpl
 
@@ -52,13 +57,18 @@ class RegistrationServiceImplTest {
         `when`(passwordEncoder.encode("Password123!")).thenReturn(encodedPassword)
         `when`(mapper.toEntity(request, encodedPassword)).thenReturn(user)
         `when`(roleRepository.findByName(RoleType.ROLE_USER)).thenReturn(role)
-        `when`(userCredentialRepository.save(any<UserCredential>())).thenReturn(user)
+        `when`(userCredentialRepository.saveAndFlush(any<UserCredential>())).thenReturn(user)
         `when`(mapper.toRegisterResponse(user)).thenReturn(RegisterResponse(user.id, "alice", "alice@example.com", false))
 
         val response = registrationService.register(request)
 
         assertEquals("alice", response.username)
         assertEquals("alice@example.com", response.email)
+        assertEquals("PENDING", response.profileProvisioningStatus)
+
+        inOrder(userCredentialRepository, userProfileProvisioningService).verify(userCredentialRepository)
+            .saveAndFlush(user)
+        verify(userProfileProvisioningService).enqueue(user.id)
     }
 
     @Test

@@ -67,7 +67,7 @@ class JwtTokenService(
                     authenticatedUser.roles
                 )
 
-                .signWith(signingKey)
+                .signWith(signingKey, Jwts.SIG.HS384)
 
                 .compact()
 

@@ -32,7 +32,7 @@ env:
   ECR_REPOSITORY: dwp/auth            # <- change to your ECR repository name
   GIT_USER_NAME: "ci-bot"
   GIT_USER_EMAIL: "ci-bot@devopswithprashant.com"
-  GITOPS_BRANCH_NAME: "feat/auth-integration"  # <- change to your gitops branch name or set as repo variable
+  GITOPS_BRANCH_NAME: "feat/profile-integration"  # <- change to your gitops branch name or set as repo variable
 
 
 

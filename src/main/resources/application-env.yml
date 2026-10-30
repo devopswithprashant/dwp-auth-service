@@ -12,3 +12,18 @@ spring:
 logging:
   level:
     root: INFO
+
+jwt:
+  issuer: ${JWT_ISSUER:devopswithprashant-auth}
+  audience: ${JWT_AUDIENCE:devopswithprashant-platform}
+  secret: ${JWT_SECRET}
+  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600}
+
+profile-service:
+  grpc-target: ${PROFILE_SERVICE_GRPC_TARGET}
+  deadline: ${PROFILE_SERVICE_GRPC_DEADLINE:3s}
+  poll-interval: ${PROFILE_SERVICE_POLL_INTERVAL:1s}
+  retry-initial-backoff: ${PROFILE_SERVICE_RETRY_INITIAL_BACKOFF:5s}
+  retry-max-backoff: ${PROFILE_SERVICE_RETRY_MAX_BACKOFF:15m}
+  retry-max-attempts: ${PROFILE_SERVICE_RETRY_MAX_ATTEMPTS:10}
+  lease-duration: ${PROFILE_SERVICE_LEASE_DURATION:10s}

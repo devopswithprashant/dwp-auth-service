@@ -6,8 +6,11 @@ import com.devopswithprashant.service.auth.entity.Role
 import com.devopswithprashant.service.auth.entity.RoleType
 import com.devopswithprashant.service.auth.repository.RoleRepository
 import com.devopswithprashant.service.auth.repository.UserCredentialRepository
+import com.devopswithprashant.service.auth.repository.UserProfileProvisioningRepository
+import com.devopswithprashant.service.auth.service.UserProfileProvisioningService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -22,6 +25,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.time.Duration
+import java.time.Instant
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,6 +42,12 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private lateinit var userCredentialRepository: UserCredentialRepository
+
+    @Autowired
+    private lateinit var userProfileProvisioningRepository: UserProfileProvisioningRepository
+
+    @Autowired
+    private lateinit var userProfileProvisioningService: UserProfileProvisioningService
 
     @Autowired
     private lateinit var roleRepository: RoleRepository
@@ -63,13 +74,30 @@ class AuthControllerIntegrationTest {
             password = "Password123!"
         )
 
-        mockMvc.perform(
+        val registrationResult = mockMvc.perform(
             post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.data.username").value("jane"))
+            .andExpect(jsonPath("$.data.profileProvisioningStatus").value("PENDING"))
+            .andReturn()
+
+        val registeredId = objectMapper.readTree(registrationResult.response.contentAsString)
+            .path("data")
+            .path("id")
+            .asText()
+        val provisioningJob = userProfileProvisioningRepository.findAll().single()
+        assertEquals(registeredId, provisioningJob.userId.toString())
+        assertEquals("PENDING", provisioningJob.status.name)
+
+        val claimedJob = userProfileProvisioningService.claimNext(
+            Instant.now(),
+            Duration.ofSeconds(10)
+        )
+        assertEquals(provisioningJob.userId, claimedJob?.userId)
+        assertEquals(1, claimedJob?.attemptCount)
 
         val loginRequest = LoginRequest(
             identifier = "jane",

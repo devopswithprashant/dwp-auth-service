@@ -10,5 +10,7 @@ data class RegisterResponse(
 
     val email: String,
 
-    val emailVerified: Boolean
+    val emailVerified: Boolean,
+
+    val profileProvisioningStatus: String = "PENDING"
 )
