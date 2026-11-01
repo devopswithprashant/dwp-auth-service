@@ -22,7 +22,11 @@ class CurrentUserMapper {
             email = user.email,
 
             roles = user.authorities
-                .map { it.authority }
+                .map {
+                    checkNotNull(it.authority) {
+                        "Authenticated user authority must not be null"
+                    }
+                }
                 .toSet()
 
         )
