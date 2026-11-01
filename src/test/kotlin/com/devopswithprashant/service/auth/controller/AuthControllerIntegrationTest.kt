@@ -12,8 +12,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import java.time.Instant
 
@@ -119,7 +119,7 @@ class AuthControllerIntegrationTest {
             com.devopswithprashant.service.auth.entity.UserCredential(
                 username = "john",
                 email = "john@example.com",
-                passwordHash = passwordEncoder.encode("Password123!")
+                passwordHash = checkNotNull(passwordEncoder.encode("Password123!"))
             ).apply {
                 assignRole(roleRepository.findByName(RoleType.ROLE_USER)!!)
             }

@@ -54,7 +54,9 @@ class RegistrationServiceImpl(
         }
 
         val encodedPassword =
-            passwordEncoder.encode(request.password)
+            checkNotNull(passwordEncoder.encode(request.password)) {
+                "Password encoder returned null"
+            }
 
         val user =
             mapper.toEntity(

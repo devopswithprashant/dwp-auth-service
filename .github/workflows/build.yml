@@ -57,6 +57,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
 
       - uses: actions/setup-java@v5
         with:
@@ -179,7 +181,7 @@ jobs:
       - name: Checkout gitops repo
         uses: actions/checkout@v6
         with:
-          repository: "devopswithprashant/k8-blogApp"
+          repository: "devopswithprashant/k8-dwp"
           token: ${{ secrets.GHEC_TOKEN_K8 }}
           ref: ${{ env.GITOPS_BRANCH_NAME }}
           fetch-depth: 10
@@ -229,7 +231,7 @@ jobs:
       - name: Checkout gitops repo
         uses: actions/checkout@v5
         with:
-          repository: "devopswithprashant/k8-blogApp"
+          repository: "devopswithprashant/k8-dwp"
           token: ${{ secrets.GHEC_TOKEN_K8 }}
           ref: ${{ env.GITOPS_BRANCH_NAME }}
           fetch-depth: 10
